@@ -190,6 +190,20 @@
     </div>
 
     <script>
+        <script>
+    // TARAYICIYA "BUNLARI SAKIN SİLME" DİYEN ÖZEL KOD
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().then(granted => {
+        if (granted) {
+            console.log("Hafıza artık kalıcı!");
+        }
+      });
+    }
+
+    // SENİN MEVCUT HAFIZA DEĞİŞKENLERİN BURADAN DEVAM EDİYOR
+    let balance = parseFloat(localStorage.getItem('balance')) || 0;
+    let kasaIslemler = JSON.parse(localStorage.getItem('kasaIslemler')) || [];
+    // ... geri kalan her şey aynı ...
         let balance = 0, personeller = [], raporlar = [], loginTarget = '';
         
         const malzemeler = [
