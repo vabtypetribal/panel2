@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adoras Panel v3.5 - Maximum Edition</title>
+    <style>
+        /* TAM VE KESİNTİSİZ TASARIM */
+        body { background-color: #0a0a0a; color: #ffffff; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
+        .hub-container { background-color: #121212; padding: 30px; border-radius: 20px; border: 1px solid #333; width: 100%; max-width: 550px; box-shadow: 0 25px 60px rgba(0,0,0,0.8); position: relative; margin: 20px; }
+        h2 { color: #ffcc00; text-align: center; font-weight: 300; margin-bottom: 25px; letter-spacing: 1.5px; text-transform: uppercase; }
+
+        /* ANA MENÜ IZGARASI */
+        #main-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .hub-card { background: #1a1a1a; border: 1px solid #333; padding: 25px 10px; border-radius: 15px; text-align: center; cursor: pointer; transition: 0.4s; color: #ffcc00; font-weight: bold; display: flex; flex-direction: column; align-items: center; gap: 10px; border-bottom: 4px solid transparent; }
+        .hub-card:hover { background: #ffcc00; color: #000; transform: translateY(-5px); border-bottom: 4px solid #fff; }
+        .hub-card span { font-size: 2rem; }
+        .full-card { grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px; background: #222; }
+
+        /* PANEL YÖNETİMİ */
+        .panel { display: none; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* GİRDİ ALANLARI */
+        label { display: block; font-size: 0.75rem; color: #888; margin: 10px 0 5px 5px; }
+        input, select, textarea { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 10px; width: 100%; box-sizing: border-box; outline: none; transition: 0.3s; font-family: inherit; }
+        input:focus { border-color: #ffcc00; }
+
+        /* BUTONLAR */
+        button { cursor: pointer; transition: 0.3s; font-weight: bold; text-transform: uppercase; border: none; font-family: inherit; }
+        .btn-main { background-color: #ffcc00; color: #000; padding: 16px; border-radius: 10px; width: 100%; font-size: 1rem; margin-top: 10px; }
+        .btn-main:hover { background-color: #e6b800; }
+        .btn-clear { background: none; border: 1px dashed #444; color: #666; padding: 12px; border-radius: 10px; width: 100%; margin-top: 25px; font-size: 0.75rem; }
+        .btn-clear:hover { border-color: #ff4444; color: #ff4444; }
+
+        /* LİSTE ELEMANLARI */
+        .list-section { max-height: 400px; overflow-y: auto; border-top: 1px solid #333; padding-top: 20px; margin-top: 20px; }
+        .item-card { background: #1a1a1a; padding: 18px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #ffcc00; position: relative; }
+        .btn-del { background: #2a2a2a; color: #ff4444; padding: 6px 12px; border-radius: 6px; font-size: 0.7rem; float: right; }
+
+        /* STOK GÖRÜNÜMÜ */
+        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #161616; border-radius: 10px; margin-bottom: 10px; border-left: 8px solid #2ecc71; }
+        .stock-controls { display: flex; gap: 8px; }
+        .s-btn { width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; opacity: 0.2; transition: 0.2s; }
+        .s-btn.active { opacity: 1; transform: scale(1.1); box-shadow: 0 0 10px rgba(255,255,255,0.1); }
+        .s-green { background: #2ecc71; }
+        .s-yellow { background: #f1c40f; }
+        .s-red { background: #e74c3c; }
+
+        /* MODAL TASARIMI */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #1a1a1a; width: 100%; max-width: 450px; border: 1px solid #ffcc00; border-radius: 20px; padding: 30px; box-shadow: 0 0 30px rgba(255,204,0,0.2); }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.95rem; border-bottom: 1px solid #222; padding-bottom: 8px; }
+
+        .summary-box { background: #1a1a1a; padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 25px; border: 1px solid #333; }
+        .back-btn { background: none; color: #666; font-size: 0.85rem; margin-bottom: 20px; cursor: pointer; display: inline-block; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="hub-container">
+        
+        <div id="detail-modal" class="modal-overlay" onclick="closeModal()">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <h3 id="modal-title" style="color:#ffcc00; margin-top:0; text-transform: uppercase;">DETAYLAR</h3>
+                <div id="modal-body"></div>
+                <button class="btn-main" onclick="closeModal()" style="margin-top:25px;">KAPAT</button>
+            </div>
+        </div>
+
+        <div id="main-menu" class="panel" style="display: grid;">
+            <h2 style="grid-column: span 2;">///ADORAS///</h2>
+            <div class="hub-card" onclick="openAuth('kasa')"><span>💰</span>KASA</div>
+            <div class="hub-card" onclick="openRandevu()"><span>📅</span>RANDEVU</div>
+            <div class="hub-card" onclick="openFiyat()"><span>🏷️</span>FİYATLAR</div>
+            <div class="hub-card" onclick="openAuth('personel')"><span>👥</span>PERSONEL</div>
+            <div class="hub-card" onclick="openNotlar()"><span>📝</span>NOTLAR</div>
+            <div class="hub-card" onclick="openAuth('rapor')"><span>📊</span>RAPOR</div>
+            <div class="hub-card full-card" onclick="openStok()"><span>📦</span> MALZEME STOK DURUMU</div>
+        </div>
+
+        <div id="auth-section" class="panel">
+            <button class="back-btn" onclick="showMenu()">← ANA MENÜ</button>
+            <h2>GÜVENLİK KONTROLÜ</h2>
+            <input type="password" id="pin-input" placeholder="PIN" style="text-align: center; font-size: 1.5rem; letter-spacing: 10px;">
+            <button class="btn-main" onclick="handleLogin()">SİSTEME GİRİŞ</button>
+        </div>
+
+        <div id="kasa-content" class="panel">
+            <button class="back-btn" onclick="showMenu()">← ANA MENÜ</button>
+            <h2>KASA YÖNETİMİ</h2>
+            <div class="summary-box">
+                <span style="color:#888; font-size: 0.8rem;">TOPLAM BAKİYE</span>
+                <div id="total-balance" style="font-size:2.5rem; color:#ffcc00; font-weight:bold; margin-top:5px;">0.00 TL</div>
+            </div>
+            <input type="number" id="k-amt" placeholder="Tutar (₺)">
+            <input type="text" id="k-desc" placeholder="İşlem Açıklaması">
+            <div style="display: flex; gap: 12px;">
+                <button style="flex:1" class="btn-main" onclick="addTransaction('gelir')">GELİR (+)</button>
+                <button style="flex:1; background:#222; color:#ffcc00; border:1px solid #ffcc00;" class="btn-main" onclick="addTransaction('gider')">GİDER (-)</button>
+            </div>
+            <div class="list-section" id="kasa-list"></div>
+            <button class="btn-clear" onclick="clearKasa()">KASAYI SIFIRLA</button>
+        </div>
+
+        <div id="randevu-content" class="panel">
+            <button class="back-btn" onclick="showMenu()">← ANA MENÜ</button>
+            <h2>RANDEVU KAYDI</h2>
+            <input type="text" id="r-plaka" placeholder="Plaka (Örn: 34ABC123)">
+            <input type="text" id="r-isim" placeholder="Müşteri Ad Soyad">
+            <input type="text" id="r-tel" placeholder="Telefon">
+            <select id="r-islem">
+                <option value="İç Yıkama">İç Yıkama</option>
+                <option value="Dış Yıkama">Dış Yıkama</option>
+                <option value="İç & Dış Temizlik">İç & Dış Temizlik</option>
+                <option value="Detaylı Temizlik">Detaylı Temizlik</option>
+                <option value="Motor Yıkama">Motor Yıkama</option>
+                <option value="Pasta Cila">Pasta Cila</option>
+            </select>
+            <label>Randevu Saati</label>
+            <input type="datetime-local" id="r-tarih">
+            <button class="btn-main" onclick="saveRandevu()">RANDEVU OLUŞTUR</button>
+            <div class="list-section" id="randevu-list"></div>
+        </div>
+
+        <div id="fiyat-content" class="panel">
+            <button class="back-btn" onclick="showMenu()">← ANA MENÜ</button>
+            <h2>GÜNCEL FİYAT LİSTESİ</h2>
+            <div class="list-section">
+                <div class="item-card">İç Yıkama <b style="float:right; color:#ffcc00">999₺</b></div>
+                <div class="item-card">Dış Yıkama <b style="float:right; color:#ffcc00">999₺</b></div>
+                <div class="item-card">İç & Dış Temizlik <b style="float:right; color:#ffcc00">999₺</b></div>
+                <div class="item-card">Motor Yıkama <b style="float:right; color:#ffcc00">999₺</b></div>
+                <div class="item-card">Pasta Cila <b style="float:right; color:#ffcc00">999₺</b></div>
+                <div class="item-card">Seramik Kaplama <b style="float:right; color:#ffcc00">999₺</b></div>
+                <div class="item-card">Koltuk Yıkama <b style="float:right; color:#ffcc00">999₺</b></div>
+                <div class="item-card">Far Parlatma <b style="float:right; color:#ffcc00">999₺</b></div>
+            </div>
+        </div>
+
+        <div id="personel-content" class="panel">
+            <button class="back-btn" onclick="showMenu()">← ANA MENÜ</button>
+            <h2>PERSONEL LİSTESİ</h2>
+            <div id="no-personel" style="text-align:center; color:#555; padding:20px;">Kayıtlı personel yok.</div>
+            <div class="list-section" id="personel-list"></div>
+            <button class="btn-main" onclick="showPersonelForm()">+ PERSONEL EKLE</button>
+        </div>
+
+        <div id="personel-form" class="panel">
+            <button class="back-btn" onclick="openPersonel()">← LİSTEYE DÖN</button>
+            <h2>YENİ PERSONEL</h2>
+            <input type="text" id="p-ad" placeholder="Ad Soyad">
+            <input type="number" id="p-tc" placeholder="TC Kimlik No">
+            <input type="text" id="p-tel" placeholder="Telefon No">
+            <input type="text" id="p-adres" placeholder="İkametgah Adresi">
+            <input type="number" id="p-maas" placeholder="Maaş Tutarı (₺)">
+            <select id="p-tur"><option value="Aylık">Aylık</option><option value="Haftalık">Haftalık</option><option value="Günlük">Günlük</option></select>
+            <input type="text" id="p-izin" placeholder="Haftalık İzin Günü">
+            <button class="btn-main" onclick="savePersonel()">KAYDI TAMAMLA</button>
+        </div>
+
+        <div id="stok-content" class="panel">
+            <button class="back-btn" onclick="showMenu()">← ANA MENÜ</button>
+            <h2>MALZEME STOK DURUMU</h2>
+            <div class="list-section" id="stok-list"></div>
+        </div>
+
+        <div id="rapor-content" class="panel">
+            <button class="back-btn" onclick="showMenu()">← ANA MENÜ</button>
+            <h2>GÜNLÜK RAPORLAMA</h2>
+            <label>Rapor Tarihi</label>
+            <input type="date" id="rap-tarih">
+            <input type="number" id="rap-kazanc" placeholder="Günlük Toplam Ciro (₺)">
+            <textarea id="rap-not" rows="3" placeholder="Günün özeti, yapılan özel işlemler..."></textarea>
+            <button class="btn-main" onclick="saveRapor()">RAPORU ARŞİVLE</button>
+            <div class="list-section" id="rapor-list"></div>
+            <div id="rapor-genel" style="background:#ffcc00; color:#000; padding:15px; border-radius:10px; text-align:center; margin-top:15px; font-weight:bold;">GENEL TOPLAM: 0₺</div>
+            <button class="btn-clear" onclick="clearRapor()">TÜM RAPORLARI SİL</button>
+        </div>
+
+        <div id="notlar-content" class="panel">
+            <button class="back-btn" onclick="showMenu()">← ANA MENÜ</button>
+            <h2>İŞLETMEYE DAİR NOTLAR</h2>
+            <input type="text" id="n-baslik" placeholder="Not Başlığı">
+            <textarea id="n-icerik" rows="4" placeholder="Notunuzu buraya yazın..."></textarea>
+            <button class="btn-main" onclick="saveNote()">NOTU KAYDET</button>
+            <div class="list-section" id="notes-list"></div>
+        </div>
+
+    </div>
+
+    <script>
+        let balance = 0, personeller = [], raporlar = [], loginTarget = '';
+        
+        const malzemeler = [
+            "pH nötr şampuan", "aktif köpük (foam)", "jant temizleyici", "demir tozu temizleyici", 
+            "zift & reçine temizleyici", "kil bar (clay bar)", "hızlı cila (quick detailer)", 
+            "wax / sealant / seramik ürünleri", "cam temizleyici", "lastik parlatıcı", 
+            "APC (genel temizleyici)", "koltuk temizleyici", "deri bakım kremi", 
+            "torpido temizleyici & koruyucu", "koku giderici / parfüm", "motor temizleyici & koruyucu", 
+            "mikrofiber bezler", "kurulama havluları", "yıkama eldiveni", "detay fırçaları", 
+            "polisaj pedleri", "maskeleme bandı", "sprey şişeler", "nitril eldiven", 
+            "maske", "kağıt havlu", "direksiyon kılıfı", "koltuk koruma naylonu", 
+            "paspas koruma kağıdı", "çöp poşeti"
+        ];
+        
+        // KALICI STOK HAFIZASI (Default: Yeşil)
+        let stokHafiza = malzemeler.map(m => ({ ad: m, durum: 'green' }));
+
+        function hideAll() { document.querySelectorAll('.panel').forEach(p => p.style.display = 'none'); }
+        function showMenu() { hideAll(); document.getElementById('main-menu').style.display = 'grid'; }
+        
+        function openAuth(target) { hideAll(); loginTarget = target; document.getElementById('auth-section').style.display = 'block'; }
+        
+        function handleLogin() {
+            if(document.getElementById('pin-input').value === "5424") {
+                hideAll(); document.getElementById(loginTarget + '-content').style.display = 'block';
+                document.getElementById('pin-input').value = '';
+                if(loginTarget === 'personel') renderPersonel();
+                if(loginTarget === 'rapor') renderRapor();
+            } else { alert("HATALI PIN GİRİLDİ!"); }
+        }
+
+        // STOK SİSTEMİ (TAM FONKSİYONEL)
+        function openStok() {
+            hideAll();
+            const list = document.getElementById('stok-list');
+            list.innerHTML = '';
+            stokHafiza.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'stock-item';
+                div.id = `stock-row-${index}`;
+                
+                let currentHex = item.durum === 'green' ? '#2ecc71' : (item.durum === 'yellow' ? '#f1c40f' : '#e74c3c');
+                div.style.borderLeftColor = currentHex;
+
+                div.innerHTML = `
+                    <span style="font-size:0.9rem;">${item.ad}</span>
+                    <div class="stock-controls">
+                        <button class="s-btn s-green ${item.durum==='green'?'active':''}" onclick="setStock(${index}, 'green')"></button>
+                        <button class="s-btn s-yellow ${item.durum==='yellow'?'active':''}" onclick="setStock(${index}, 'yellow')"></button>
+                        <button class="s-btn s-red ${item.durum==='red'?'active':''}" onclick="setStock(${index}, 'red')"></button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            document.getElementById('stok-content').style.display = 'block';
+        }
+
+        function setStock(idx, color) {
+            stokHafiza[idx].durum = color;
+            const row = document.getElementById(`stock-row-${idx}`);
+            const btns = row.querySelectorAll('.s-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            
+            if(color === 'green') { btns[0].classList.add('active'); row.style.borderLeftColor = '#2ecc71'; }
+            else if(color === 'yellow') { btns[1].classList.add('active'); row.style.borderLeftColor = '#f1c40f'; }
+            else { btns[2].classList.add('active'); row.style.borderLeftColor = '#e74c3c'; }
+        }
+
+        // KASA (HİÇBİR ŞEY KIRPILMADI)
+        function addTransaction(type) {
+            const amt = parseFloat(document.getElementById('k-amt').value);
+            const desc = document.getElementById('k-desc').value;
+            if(!amt || !desc) return;
+            balance += (type === 'gelir' ? amt : -amt);
+            document.getElementById('total-balance').innerText = balance.toFixed(2) + " TL";
+            const div = document.createElement('div'); div.className = 'item-card';
+            div.innerHTML = `<b>${desc}</b> <span style="float:right; color:${type==='gelir'?'#ffcc00':'#ff4444'}">${type==='gelir'?'+':'-'}${amt}₺</span>`;
+            document.getElementById('kasa-list').prepend(div);
+            document.getElementById('k-amt').value = ''; document.getElementById('k-desc').value = '';
+        }
+        function clearKasa() { if(confirm("Tüm kasa verileri silinecek. Emin misiniz?")) { balance = 0; document.getElementById('total-balance').innerText = "0.00 TL"; document.getElementById('kasa-list').innerHTML = ''; } }
+
+        // RANDEVU
+        function saveRandevu() {
+            const p = document.getElementById('r-plaka').value, i = document.getElementById('r-isim').value, s = document.getElementById('r-islem').value, d = document.getElementById('r-tarih').value;
+            if(!p || !d) { alert("Plaka ve Tarih zorunludur!"); return; }
+            const div = document.createElement('div'); div.className = 'item-card';
+            div.innerHTML = `<button class="btn-del" onclick="this.parentElement.remove()">TAMAMLANDI</button><b>${p.toUpperCase()}</b><br><small>${i} | ${s} | ${d.replace('T',' ')}</small>`;
+            document.getElementById('randevu-list').prepend(div);
+            document.getElementById('r-plaka').value = ''; document.getElementById('r-isim').value = '';
+        }
+
+        // PERSONEL SİSTEMİ (DETAYLI)
+        function savePersonel() {
+            const ad = document.getElementById('p-ad').value; if(!ad) return;
+            personeller.push({ 
+                id: Date.now(), ad: ad, tc: document.getElementById('p-tc').value, tel: document.getElementById('p-tel').value,
+                adres: document.getElementById('p-adres').value, maas: document.getElementById('p-maas').value, 
+                tur: document.getElementById('p-tur').value, izin: document.getElementById('p-izin').value
+            });
+            openPersonel();
+        }
+        function renderPersonel() {
+            const list = document.getElementById('personel-list'), noP = document.getElementById('no-personel');
+            list.innerHTML = ''; noP.style.display = personeller.length ? 'none' : 'block';
+            personeller.forEach(p => {
+                const div = document.createElement('div'); div.className = 'item-card'; div.style.cursor = 'pointer';
+                div.onclick = () => showPersonelDetail(p.id);
+                div.innerHTML = `<b>${p.ad.toUpperCase()}</b> <button class="btn-del" onclick="event.stopPropagation(); deletePersonel(${p.id})">SİL</button>`;
+                list.prepend(div);
+            });
+        }
+        function showPersonelDetail(id) {
+            const p = personeller.find(x => x.id === id);
+            document.getElementById('modal-title').innerText = p.ad.toUpperCase();
+            document.getElementById('modal-body').innerHTML = `
+                <div class="detail-row"><span>TC No:</span><span>${p.tc}</span></div>
+                <div class="detail-row"><span>Telefon:</span><span>${p.tel}</span></div>
+                <div class="detail-row"><span>Maaş:</span><span>${p.maas}₺ (${p.tur})</span></div>
+                <div class="detail-row"><span>İzin Günü:</span><span>${p.izin}</span></div>
+                <div class="detail-row" style="border:none; flex-direction:column; margin-top:10px;"><span style="color:#ffcc00; margin-bottom:5px;">Adres:</span><span style="font-size:0.85rem; color:#ccc;">${p.adres}</span></div>
+            `;
+            document.getElementById('detail-modal').style.display = 'flex';
+        }
+        function deletePersonel(id) { if(confirm("Personel kaydını silmek istiyor musunuz?")) { personeller = personeller.filter(x => x.id !== id); renderPersonel(); } }
+        function closeModal() { document.getElementById('detail-modal').style.display = 'none'; }
+
+        // RAPOR
+        function saveRapor() {
+            const k = parseFloat(document.getElementById('rap-kazanc').value); if(isNaN(k)) return;
+            raporlar.push({ id: Date.now(), t: document.getElementById('rap-tarih').value, k: k, n: document.getElementById('rap-not').value });
+            renderRapor();
+            document.getElementById('rap-kazanc').value = ''; document.getElementById('rap-not').value = '';
+        }
+        function renderRapor() {
+            const list = document.getElementById('rapor-list'); list.innerHTML = ''; let tot = 0;
+            raporlar.forEach(r => { 
+                tot += r.k; 
+                const div = document.createElement('div'); div.className = 'item-card';
+                div.innerHTML = `<b>${r.t}</b> <span style="float:right">${r.k}₺</span><br><small style="color:#aaa;">${r.n}</small><button class="btn-del" style="margin-top:10px;" onclick="deleteRapor(${r.id})">KAYDI SİL</button>`;
+                list.appendChild(div);
+            });
+            document.getElementById('rapor-genel').innerText = "GENEL TOPLAM CİRO: " + tot + "₺";
+        }
+        function deleteRapor(id) { raporlar = raporlar.filter(x => x.id !== id); renderRapor(); }
+        function clearRapor() { if(confirm("Tüm rapor arşivi silinecek?")) { raporlar = []; renderRapor(); } }
+
+        // NOTLAR
+        function saveNote() {
+            const b = document.getElementById('n-baslik').value, i = document.getElementById('n-icerik').value; if(!b) return;
+            const div = document.createElement('div'); div.className = 'item-card';
+            div.innerHTML = `<button class="btn-del" onclick="this.parentElement.remove()">SİL</button><b>${b}</b><p style="font-size:0.85rem; margin-top:8px; color:#ccc; line-height:1.4;">${i}</p>`;
+            document.getElementById('notes-list').prepend(div);
+            document.getElementById('n-baslik').value = ''; document.getElementById('n-icerik').value = '';
+        }
+
+        // PANEL YÖNLENDİRME
+        function openRandevu() { hideAll(); document.getElementById('randevu-content').style.display = 'block'; }
+        function openFiyat() { hideAll(); document.getElementById('fiyat-content').style.display = 'block'; }
+        function openPersonel() { hideAll(); document.getElementById('personel-content').style.display = 'block'; renderPersonel(); }
+        function showPersonelForm() { hideAll(); document.getElementById('personel-form').style.display = 'block'; }
+        function openNotlar() { hideAll(); document.getElementById('notlar-content').style.display = 'block'; }
+    </script>
+</body>
+</html>
